@@ -1,0 +1,38 @@
+' Macro links all drawing views on currently active sheet to pre-selected BoM from the tree manager.
+' Use at your own risk
+' -------------------------------------------------------------------------------
+
+Sub Main()
+
+    Dim swApp As SldWorks.SldWorks
+    Dim swModel As SldWorks.ModelDoc2
+    Dim swDraw As SldWorks.DrawingDoc
+    Dim swSheet As SldWorks.Sheet
+    Dim BomName As String
+    Dim swBomFeat As SldWorks.BomFeature
+    Dim swSelMgr As SldWorks.SelectionMgr
+    Dim swFeat As SldWorks.Feature
+
+    Set swApp = CreateObject("SldWorks.Application")
+    Set swModel = swApp.ActiveDoc
+    Set swDraw = swModel
+    Set swSheet = swDraw.GetCurrentSheet
+    Set swView = swDraw.GetFirstView
+    Set swSelMgr = swModel.SelectionManager
+
+
+    If swSelMgr.GetSelectedObjectType2(1) = 97 Then
+        Set swBomFeat = swSelMgr.GetSelectedObject5(1)
+        BomName = swBomFeat.Name
+    Else
+        MsgBox ("Please select BoM from Tree Manager and run macro again.")
+        Exit Sub
+    End If
+        
+
+    Do While Not swView Is Nothing
+        swView.SetKeepLinkedToBOM True, BomName
+        Set swView = swView.GetNextView
+    Loop
+
+End Sub
