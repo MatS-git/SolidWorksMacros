@@ -1,0 +1,92 @@
+'Macro exports PDF file from  drawing with custom properties like Revision
+' and chooses the location based on who revised it as last (also custom property). It also checks if the file already exists and prompts you if you wanna change it.
+'__________________________________
+
+
+
+Sub main()
+
+Dim swApp As SldWorks.SldWorks
+Dim swModel As SldWorks.ModelDoc2
+Dim swDraw As SldWorks.DrawingDoc
+
+Dim swExportPDFData As SldWorks.ExportPdfData
+Dim strFilename As String
+Dim status As Boolean
+Dim errors As Long, warnings As Long
+Dim PDFFileName As String
+Dim PDFPath As String
+Dim Revision As String
+Dim Revised As String
+
+Dim FSO
+
+Set swApp = Application.SldWorks
+Set swModel = swApp.ActiveDoc
+
+'Checking if document is drawing, otherwise wont run
+If (swModel.GetType = swDocDRAWING) Then
+
+    Set swDraw = swApp.ActiveDoc
+
+    'File Path
+    FilePath = swDraw.GetPathName
+    InterPath = Left(FilePath, InStrRev(FilePath, "\") - 1)
+
+    'Set Revised by
+    Revised = swDraw.CustomInfo("Revised By")
+
+    'PDFPath by Revised
+        If (Revised = "<Your Name>") Then
+
+            'PDFPath = InterPath 'If you want to store drawing in files location
+            PDFPath = "<Your File Path>"
+
+        ElseIf (Revised = "<Someone Else>") Then
+                PDFPath = "<File Path>"
+
+        Else
+
+            If MsgBox("Revised By not specified. PDF will be saved in file's folder. Do you want to continue?", vbYesNo, "Revised By not specified") <> vbYes Then Exit Sub
+
+                PDFPath = InterPath
+        End If
+
+    'Set revision
+        Revision = swDraw.CustomInfo("Revision")
+        FileName = swDraw.GetPathName
+
+    'Set File Name
+        PDFFileName = Mid(swDraw.GetPathName, InStrRev(swDraw.GetPathName, "\") + 1)
+        PDFFileName = Left(PDFFileName, InStrRev(PDFFileName, ".") - 1) & "_" & Revision & ".PDF"
+
+    'Check if file already exist and Confirm Overwrite
+        Set FSO = CreateObject("Scripting.FileSystemObject")
+
+        If FSO.FileExists(PDFPath & "\" & PDFFileName) = True Then
+
+            If MsgBox(PDFPath & "\" & PDFFileName & " already exists. Are you sure you would like to overwrite?", vbYesNo, "Confirm Overwrite") = 6 Then
+
+                'Save As Drawing
+                swDraw.SaveAs (PDFPath & "\" & PDFFileName)
+
+            Else
+
+                Exit Sub
+
+            End If
+
+        Else
+
+            'Save As Drawing
+            swDraw.SaveAs (PDFPath & "\" & PDFFileName)
+
+        End If
+
+Else
+    MsgBox ("This macro only works with DRAWINGS, please open one and run the macro again")
+    Exit Sub
+End If
+
+
+End Sub
