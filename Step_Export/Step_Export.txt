@@ -1,0 +1,31 @@
+' Custom Window for Step export.
+' Use at your own risk
+' -------------------------------------------------------------------------------
+
+Sub main()
+
+Dim swApp As SldWorks.SldWorks
+Dim swModel As SldWorks.ModelDoc2
+Dim strFilename As String
+Dim status As Boolean
+Dim errors As Long, warnings As Long
+Dim STPFileName As String
+Dim STPPath As String
+Dim Revision As String
+Dim swConfig As SldWorks.Configuration
+Dim sConfigName As String
+Dim bRetVal As Boolean
+
+Set swApp = Application.SldWorks
+Set swModel = swApp.ActiveDoc
+Set swConfig = swModel.GetActiveConfiguration
+
+    'Checking if document is part
+    If (swModel.GetType = swDocPART) Or (swModel.GetType = swDocASSEMBLY) Then
+        UserForm1.Show
+    Else
+        MsgBox ("This script only works with PARTS and ASSEMBLIES, please open one and run the script again")
+        Exit Sub
+    End If
+
+End Sub

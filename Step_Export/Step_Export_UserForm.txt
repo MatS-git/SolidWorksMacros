@@ -1,0 +1,235 @@
+' Custom Window for Step export.
+' Use at your own risk
+' -------------------------------------------------------------------------------
+
+Private Sub ComboBox3_Change()
+
+End Sub
+
+Private Sub CommandButton2_Click()
+
+    End
+
+End Sub
+
+Private Sub CommandButton3_Click()
+
+    Set swApp = Application.SldWorks
+    Set swModel = swApp.ActiveDoc
+
+    'Author - I use custom property called Author to set file path
+    Author = ComboBox2.Text
+
+    'File Path
+    FilePath = swModel.GetPathName
+    InterPath = Left(FilePath, InStrRev(FilePath, "\") - 1)
+
+    If Author = "" Then
+        STPPath = InterPath
+    Else
+        STPPath = " [set path based on assigned to author] "
+    End If
+
+    'Opens windows folder with the file
+    Call Shell("Explorer.exe" & " " & STPPath, vbNormalFocus)
+
+End Sub
+
+Private Sub CheckBox3_Click()
+
+    If CheckBox3.Value = True Then
+        CheckBox2.Visible = True
+        Label1.Visible = True
+        TextBox3.Visible = True
+        Frame1.Height = 108
+    Else
+        CheckBox2.Visible = False
+        Label1.Visible = False
+        TextBox3.Visible = False
+        Frame1.Height = 42
+    End If
+
+End Sub
+
+Private Sub ListBox2_Click()
+
+End Sub
+
+Private Sub UserForm_Initialize()
+
+    Set swApp = Application.SldWorks
+    Set swModel = swApp.ActiveDoc
+
+    Frame1.Height = 42
+    vConfNamesArr = swModel.GetConfigurationNames
+
+    BubbleSort vConfNamesArr
+
+    ListBox1.List = vConfNamesArr
+
+    ' List with potential Author
+    With Me.ComboBox2
+        .AddItem "MSK"
+
+    End With
+
+    'Sets value in window to #1 in this case MSK
+    ComboBox2.ListIndex = 0
+
+
+End Sub
+
+Private Sub ComboBox1_Change()
+
+End Sub
+
+Private Sub CommandButton1_Click()
+
+Set swApp = Application.SldWorks
+Set swModel = swApp.ActiveDoc
+
+  'Setting custom values
+    If CheckBox2.Value = True Then
+        dColour = "A"
+    Else
+        dColour = ""
+    End If
+
+    cColour = TextBox3.Text
+
+    bRetVal = swApp.SetUserPreferenceIntegerValue(swStepAP, 214)
+
+    'Author
+    Author = ComboBox2.Text
+
+    'File Path
+    FilePath = swModel.GetPathName
+    InterPath = Left(FilePath, InStrRev(FilePath, "\") - 1)
+
+    If Author = "" Then
+        STPPath = InterPath
+    Else
+        STPPath = " [ set path based on assigned to author ]"
+    End If
+
+    'Revision of file
+    Revision = UCase(TextBox2.Text)
+
+    ListBox2.Clear
+
+    With Me.ListBox2
+        .AddItem STPPath
+        .AddItem "_________________________________"
+    End With
+
+
+    For i = 0 To ListBox1.ListCount - 1
+        If ListBox1.Selected(i) = True Then
+
+            'Revision Entered
+            If Revision = "" Then
+                MsgBox ("Please enter Revision")
+                Exit For
+            End If
+
+            'File Name
+            sConfigName = ListBox1.List(i)
+
+            ' If we have painted part we need to add colour code. If the code is missing you are prompted to add it
+            If CheckBox3.Value = True Then
+                SearchStr = ("xxxx")
+                ReplaceStr = cColour
+
+                 If cColour = "" Then
+                    MsgBox ("Please enter the Colour Code.")
+                    Exit For
+                End If
+
+                mConfigName = Replace(sConfigName, SearchStr, ReplaceStr, 1, -1, vbTextCompare)
+                STPFileName = mConfigName & dColour & "_" & Revision & ".step"
+            Else
+                STPFileName = sConfigName & "_" & Revision & ".step"
+            End If
+
+
+             'Check if file already exist and Confirm Overwrite
+            Set FSO = CreateObject("Scripting.FileSystemObject")
+
+            If FSO.FileExists(STPPath & "\" & STPFileName) = True Then
+                If MsgBox(STPPath & "\" & STPFileName & " already exists. Are you sure you would like to overwrite?", vbYesNo, "Confirm Overwrite") = 6 Then
+                    'MsgBox (STPPath & vbNewLine & STPFileName)
+                    'Save As STP
+                    swModel.SaveAs (STPPath & "\" & STPFileName)
+                Else
+                    Exit Sub
+                End If
+            Else
+                'Exported file informations
+                'MsgBox (STPPath & vbNewLine & STPFileName)
+
+                'Save As STP
+                swModel.SaveAs (STPPath & "\" & STPFileName)
+            End If
+
+            With Me.ListBox2
+                .AddItem STPFileName
+            End With
+        End If
+
+    Next i
+
+    With Me.ListBox2
+        .AddItem "Done"
+    End With
+
+End Sub
+
+Private Sub CheckBox1_Click()
+
+    If CheckBox1.Value = True Then
+        For j = 0 To ListBox1.ListCount - 1
+            ListBox1.Selected(j) = True
+        Next j
+    Else
+        For j = 0 To ListBox1.ListCount - 1
+            ListBox1.Selected(j) = False
+        Next j
+    End If
+
+
+End Sub
+
+Private Sub CheckBox2_Click()
+
+End Sub
+
+Private Sub ListBox1_Click()
+
+End Sub
+
+Private Sub TextBox1_Change()
+
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub
+
+Sub BubbleSort(arr)
+  Dim strTemp As String
+  Dim i As Long
+  Dim j As Long
+  Dim lngMin As Long
+  Dim lngMax As Long
+  lngMin = LBound(arr)
+  lngMax = UBound(arr)
+  For i = lngMin To lngMax - 1
+    For j = i + 1 To lngMax
+      If arr(i) > arr(j) Then
+        strTemp = arr(i)
+        arr(i) = arr(j)
+        arr(j) = strTemp
+      End If
+    Next j
+  Next i
+End Sub
