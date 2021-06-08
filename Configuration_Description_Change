@@ -1,0 +1,148 @@
+' Lets you change name and/or description of one or multiple Parts/Assemblies at once.
+' Use at your own risk
+' -------------------------------------------------------------------------------
+Dim swApp As SldWorks.SldWorks
+Sub main()
+
+    Set swApp = Application.SldWorks
+    Dim swModel As SldWorks.ModelDoc2
+
+    Set swModel = swApp.ActiveDoc
+
+    Dim CurrentName As String
+    Dim ModifiedName As String
+
+    Dim vRet As Variant
+    vRet = swModel.GetConfigurationNames
+
+
+    Dim SearchStr As String
+    Dim ReplaceStr As String
+
+    'Replace configuration
+
+    If MsgBox("Would you like to rename configuration/s?", vbYesNo + vbQuestion) = vbYes Then
+
+        'Input of search and find configurations
+
+        SearchStr = InputBox("Find configuration name:", "Find Configuration", "")
+            If SearchStr = "" Then MsgBox "This box cannot be left blank": Exit Sub
+        ReplaceStr = InputBox("Replace configuration with:", "Replace Configuration", "")
+            If ReplaceStr = "" Then MsgBox "This box cannot be left blank": Exit Sub
+
+        'Confirm replace of configurations?
+
+        If MsgBox("Replace: '" & SearchStr & " with: '" & ReplaceStr & "' ?", vbYesNo + vbQuestion) <> vbYes Then Exit Sub
+
+            Dim strBld As String
+            strBld = ""
+
+            Dim swCfg As Configuration
+
+            Dim renameCount As Integer
+            Dim failCount As Integer
+            Dim totalCount As Integer
+
+        'Looping for all configurations
+
+            For i = 0 To UBound(vRet)
+                totalCount = totalCount + 1
+
+                ModifiedName = Replace(vRet(i), SearchStr, ReplaceStr, 1, -1, vbTextCompare)
+
+                If ModifiedName <> vRet(i) Then
+                    Set swCfg = swModel.GetConfigurationByName(vRet(i))
+                    swCfg.Name = ModifiedName
+
+                    If swCfg.Name <> ModifiedName Then
+                        failCount = failCount + 1
+                        strBld = strBld & swCfg.Name & vbNewLine
+                    Else
+                        renameCount = renameCount + 1
+                    End If
+                End If
+            Next i
+
+        'Failed configurations
+
+            If failCount > 0 Then
+                MsgBox (failCount & "/" & totalCount & " Failed to rename:" & vbNewLine & strBld)
+            End If
+
+        'Renaming successful and number of configurations
+            MsgBox (renameCount & "/" & totalCount & " Configurations renamed")
+
+        'Replace configuration's description?
+
+        If MsgBox("Would you like to replace something in configuration's description as well?", vbYesNo + vbQuestion) <> vbYes Then Exit Sub
+
+            Set swApp = Application.SldWorks
+            Set swModel = swApp.ActiveDoc
+            vRet = swModel.GetConfigurationNames
+
+            Dim SearchDes As String
+            Dim ReplaceDes As String
+
+            SearchDes = InputBox("Find text in description:", "Find Text", "")
+                If SearchDes = "" Then MsgBox "This box cannot be left blank": Exit Sub
+            ReplaceDes = InputBox("Replace text in description with:", "Replace Text", "")
+                If ReplaceDes = "" Then MsgBox "This box cannot be left blank": Exit Sub
+
+            Dim ModifiedDes As String
+
+            'Looping for all configurations
+
+            Dim vDes As String
+
+            For i = 0 To UBound(vRet)
+
+                Set swCfg = swModel.GetConfigurationByName(vRet(i))
+                vDes = swCfg.Description
+
+                ModifiedDes = Replace(vDes, SearchDes, ReplaceDes, 1, -1, vbTextCompare)
+
+                If ModifiedDes <> vDes Then
+                    Set swCfg = swModel.GetConfigurationByName(vRet(i))
+                    swCfg.Description = ModifiedDes
+
+                End If
+
+            Next i
+
+            swModel.ForceRebuild3 False
+
+    Else
+
+        'Change configuration's description?
+
+        If MsgBox("Would you like to change configuration's description?", vbYesNo + vbQuestion) <> vbYes Then Exit Sub
+
+            SearchDes = InputBox("Find text in description:", "Find Text", "")
+                If SearchDes = "" Then MsgBox "This box cannot be left blank": Exit Sub
+            ReplaceDes = InputBox("Replace text in description with:", "Replace Text", "")
+                If ReplaceDes = "" Then MsgBox "This box cannot be left blank": Exit Sub
+
+
+    'Looping for all configurations
+
+            For i = 0 To UBound(vRet)
+
+                Set swCfg = swModel.GetConfigurationByName(vRet(i))
+                vDes = swCfg.Description
+
+                ModifiedDes = Replace(vDes, SearchDes, ReplaceDes, 1, -1, vbTextCompare)
+
+                If ModifiedDes <> vDes Then
+                    Set swCfg = swModel.GetConfigurationByName(vRet(i))
+                    swCfg.Description = ModifiedDes
+
+                End If
+
+            Next i
+
+            swModel.ForceRebuild3 True
+
+    End If
+
+End Sub
+
