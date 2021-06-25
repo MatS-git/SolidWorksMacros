@@ -87,6 +87,8 @@ Private Sub CommandButton1_Click()
 
 Set swApp = Application.SldWorks
 Set swModel = swApp.ActiveDoc
+Dim swConfig As SldWorks.Configuration
+Dim bShowConfig As Boolean
 
   'Setting custom values
     If CheckBox2.Value = True Then
@@ -159,6 +161,8 @@ Set swModel = swApp.ActiveDoc
                 If MsgBox(STPPath & "\" & STPFileName & " already exists. Are you sure you would like to overwrite?", vbYesNo, "Confirm Overwrite") = 6 Then
                     'MsgBox (STPPath & vbNewLine & STPFileName)
                     'Save As STP
+                    bShowConfig = swModel.ShowConfiguration2(sConfigName)
+                    Set swConfig = swModel.GetActiveConfiguration
                     swModel.SaveAs (STPPath & "\" & STPFileName)
                 Else
                     Exit Sub
@@ -168,6 +172,8 @@ Set swModel = swApp.ActiveDoc
                 'MsgBox (STPPath & vbNewLine & STPFileName)
 
                 'Save As STP
+                bShowConfig = swModel.ShowConfiguration2(sConfigName)
+                Set swConfig = swModel.GetActiveConfiguration
                 swModel.SaveAs (STPPath & "\" & STPFileName)
             End If
 
